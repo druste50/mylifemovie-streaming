@@ -83,13 +83,13 @@ export function CategorySectionInfinite({ title, type, onItemClick }: CategorySe
       {items.length === 0 && loading && (
         <div className="text-white">Carregando {title.toLowerCase()}...</div>
       )}
-      <div className="relative group">
+      <div className="relative carousel-container">
         {/* Seta esquerda */}
         {showLeftArrow && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-70 hover:opacity-100 transition-all duration-300"
             onClick={scrollLeft}
           >
             <ChevronLeft className="w-6 h-6" />
@@ -101,7 +101,7 @@ export function CategorySectionInfinite({ title, type, onItemClick }: CategorySe
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full opacity-70 hover:opacity-100 transition-all duration-300"
             onClick={scrollRight}
           >
             <ChevronRight className="w-6 h-6" />

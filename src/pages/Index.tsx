@@ -6,7 +6,8 @@ import { HeroSection } from '@/components/HeroSection';
 import { CategorySectionInfinite } from '@/components/CategorySectionInfinite';
 import { GenreSection } from '@/components/GenreSection';
 import { MoviePlayer } from '@/components/MoviePlayer';
-import { RandomRoulette } from '@/components/RandomRoulette';
+import { RandomRoulette } from '../components/RandomRoulette';
+import { Footer } from '../components/Footer';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -282,6 +283,9 @@ const Index = () => {
 
       {/* Roleta Flutuante */}
       <RandomRoulette onPlayMovie={handlePlayContent} />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

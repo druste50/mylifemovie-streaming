@@ -85,13 +85,13 @@ export function GenreSectionInfinite({ title, genreId, contentType }: GenreSecti
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-white">{title}</h2>
       
-      <div className="relative group">
+      <div className="relative carousel-container">
         {/* Seta esquerda */}
         {showLeftArrow && (
           <Button
             variant="ghost"
             size="icon"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white opacity-70 hover:opacity-100 transition-opacity duration-300 hidden md:flex"
             onClick={scrollLeft}
           >
             <ChevronLeft className="h-6 w-6" />
@@ -103,7 +103,7 @@ export function GenreSectionInfinite({ title, genreId, contentType }: GenreSecti
           <Button
             variant="ghost"
             size="icon"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden md:flex"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white opacity-70 hover:opacity-100 transition-opacity duration-300 hidden md:flex"
             onClick={scrollRight}
           >
             <ChevronRight className="h-6 w-6" />
