@@ -316,207 +316,36 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
       {/* Player com proteções contra anúncios */}
       <div className="w-full h-full max-w-7xl max-h-[80vh] mx-4">
         {isIOS() ? (
-          // Interface especial para iOS
+          // Interface simplificada para iOS
           <Card className="w-full h-full border-0 overflow-hidden bg-gradient-to-br from-gray-900 to-black flex flex-col items-center justify-center p-8">
-            {showNativePlayer && streamUrl ? (
-              // Player nativo iOS com HLS ou iframe bypass
-              <div className="w-full h-full flex flex-col">
-                <div className="flex-1 flex items-center justify-center">
-                  {streamUrl === 'iframe-bypass' ? (
-                    // Iframe com bypass especial para iOS
-                    <div className="w-full h-full relative bg-black">
-                      <iframe
-                        src={getSimpleEmbedUrl()}
-                        className="w-full h-full border-0"
-                        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals"
-                        allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *; accelerometer *; gyroscope *; magnetometer *; camera *; microphone *; geolocation *"
-                        referrerPolicy="no-referrer"
-                        title={title}
-                        style={{
-                          pointerEvents: 'auto',
-                          isolation: 'isolate',
-                          border: 'none',
-                          outline: 'none'
-                        }}
-                        onLoad={() => {
-                          console.log('Iframe bypass carregado');
-                          // Tentar injetar scripts para bypass
-                          try {
-                            const iframe = document.querySelector('iframe');
-                            if (iframe && iframe.contentWindow) {
-                              // Tentar comunicação via postMessage
-                              iframe.contentWindow.postMessage({
-                                action: 'bypass-protection',
-                                origin: window.location.origin
-                              }, '*');
-                              
-                              // Tentar remover proteções comuns
-                              setTimeout(() => {
-                                iframe.contentWindow.postMessage({
-                                  action: 'remove-overlays'
-                                }, '*');
-                              }, 2000);
-                            }
-                          } catch (e) {
-                            console.log('Não foi possível comunicar com iframe:', e);
-                          }
-                        }}
-                      />
-                      
-                      {/* Overlay para capturar cliques e tentar bypass */}
-                      <div 
-                        className="absolute inset-0 pointer-events-none"
-                        style={{ zIndex: -1 }}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          // Tentar focar no iframe
-                          const iframe = document.querySelector('iframe');
-                          if (iframe) {
-                            iframe.focus();
-                          }
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    // Player de vídeo nativo
-                    <video
-                      className="w-full h-full max-h-[70vh] bg-black"
-                      controls
-                      playsInline
-                      preload="metadata"
-                      src={streamUrl}
-                      onError={(e) => {
-                        console.error('Erro no player nativo:', e);
-                        
-                        // Tentar próximo URL da lista
-                        const possibleStreams = [
-                          `https://warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
-                          `https://embed.warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
-                          `https://warezcdn.link/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}/playlist.m3u8`,
-                          getSimpleEmbedUrl()
-                        ];
-                        
-                        const currentIndex = possibleStreams.indexOf(streamUrl);
-                        const nextIndex = currentIndex + 1;
-                        
-                        if (nextIndex < possibleStreams.length) {
-                          console.log('Tentando próximo stream:', possibleStreams[nextIndex]);
-                          setStreamUrl(possibleStreams[nextIndex]);
-                        } else {
-                          alert('Não foi possível reproduzir o vídeo. Tente as outras opções disponíveis.');
-                          setShowNativePlayer(false);
-                          setStreamUrl(null);
-                        }
-                      }}
-                      onLoadStart={() => {
-                        console.log('Iniciando carregamento do vídeo:', streamUrl);
-                      }}
-                      onCanPlay={() => {
-                        console.log('Vídeo pronto para reprodução');
-                      }}
-                    >
-                      Seu navegador não suporta reprodução de vídeo HTML5.
-                    </video>
-                  )}
-                </div>
-                <div className="mt-4 text-center">
-                  <Button 
-                    onClick={() => {
-                      setShowNativePlayer(false);
-                      setStreamUrl(null);
-                    }}
-                    variant="outline"
-                    className="border-gray-600 text-white hover:bg-gray-800"
-                  >
-                    ← Voltar às Opções
-                  </Button>
+            <div className="text-center space-y-6 max-w-md">
+              <div className="text-6xl mb-4">🚧</div>
+              <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+              
+              <div className="bg-orange-900/30 border border-orange-600/50 rounded-lg p-6 mt-6">
+                <div className="text-orange-200 space-y-3">
+                  <h4 className="text-lg font-semibold text-orange-100">🔧 Em Desenvolvimento</h4>
+                  <p className="text-sm">
+                    Estamos implementando uma solução específica para dispositivos iOS.
+                  </p>
+                  <p className="text-sm">
+                    Por favor, acesse este site em <strong>qualquer navegador do iOS</strong> (Safari, Chrome, Firefox, Edge) para a melhor experiência.
+                  </p>
                 </div>
               </div>
-            ) : (
-              // Interface de opções
-              <div className="text-center space-y-6">
-                <div className="text-6xl mb-4">📱</div>
-                <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
-                <p className="text-gray-300 text-lg mb-6">
-                  Escolha a melhor opção para assistir no iOS:
+              
+              <div className="bg-blue-900/30 border border-blue-600/50 rounded-lg p-4 mt-4">
+                <p className="text-blue-200 text-sm">
+                  💡 <strong>Dica:</strong> Enquanto isso, você pode usar um computador ou dispositivo Android para assistir normalmente.
                 </p>
-                
-                <div className="space-y-4 w-full max-w-md">
-                  {supportsNativeHLS() && (
-                    <Button 
-                      onClick={tryNativePlayer}
-                      disabled={isLoadingStream}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
-                    >
-                      {isLoadingStream ? '🔄 Carregando...' : '🎬 Player Nativo iOS'}
-                    </Button>
-                  )}
-                  
-                  <Button 
-                    onClick={() => {
-                      // Tentar iframe com bypass para iOS
-                      setShowNativePlayer(true);
-                      setStreamUrl('iframe-bypass');
-                    }}
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 text-lg"
-                  >
-                    🔓 Player com Bypass iOS
-                  </Button>
-                  
-                   <Button 
-                     onClick={openInNativePlayer}
-                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
-                   >
-                     🌐 Abrir em Nova Aba
-                   </Button>
-                   
-                   <Button 
-                     onClick={copyAlternativeUrl}
-                     variant="outline"
-                     className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
-                   >
-                     📋 Copiar Link Simplificado
-                   </Button>
-                   
-                   <Button 
-                     onClick={() => {
-                       const fullUrl = getEmbedUrl();
-                       navigator.clipboard.writeText(fullUrl);
-                       setShowIOSMessage(true);
-                       setTimeout(() => setShowIOSMessage(false), 3000);
-                     }}
-                     variant="outline"
-                     className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
-                   >
-                     📋 Copiar Link Completo
-                   </Button>
-                 </div>
-                
-                {showIOSMessage && (
-                   <div className="bg-green-600 text-white px-4 py-2 rounded-lg mt-4">
-                     ✅ Link copiado! Teste em Chrome, Firefox ou cole diretamente no navegador
-                   </div>
-                 )}
-                
-                <div className="bg-purple-900/30 border border-purple-600/50 rounded-lg p-4 mt-6">
-                  <p className="text-purple-200 text-sm">
-                    🔓 <strong>Novo:</strong> Player com Bypass iOS usa técnicas avançadas para contornar proteções!
-                  </p>
-                </div>
-                
-                <div className="bg-blue-900/30 border border-blue-600/50 rounded-lg p-4 mt-2">
-                  <p className="text-blue-200 text-sm">
-                    💡 Player Nativo iOS tenta extrair streams diretos usando múltiplos métodos.
-                  </p>
-                </div>
-                
-                <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4 mt-2">
-                  <p className="text-yellow-200 text-sm">
-                    📱 Para melhor experiência, use Chrome ou Firefox em vez do Safari.
-                  </p>
-                </div>
               </div>
-            )}
+              
+              <div className="bg-gray-800/50 border border-gray-600/50 rounded-lg p-4 mt-4">
+                <p className="text-gray-300 text-xs">
+                  Agradecemos sua paciência enquanto trabalhamos para oferecer a melhor experiência no iOS.
+                </p>
+              </div>
+            </div>
           </Card>
         ) : (
           // Player normal para outros dispositivos
