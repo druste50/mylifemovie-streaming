@@ -58,7 +58,14 @@ export function GenreSection({ type, onItemClick }: GenreSectionProps) {
         ? await tmdbService.getMoviesByGenre(genreId)
         : await tmdbService.getTVShowsByGenre(genreId);
       
-      setGenreContent(response.results);
+      // Filtrar apenas conteúdo disponível no WarezCDN
+      console.log(`Filtrando ${response.results.length} itens do gênero...`);
+      const availableContent = type === 'movie'
+        ? await tmdbService.filterAvailableMovies(response.results)
+        : await tmdbService.filterAvailableTVShows(response.results);
+      
+      console.log(`${availableContent.length} itens disponíveis de ${response.results.length} encontrados`);
+      setGenreContent(availableContent);
     } catch (error) {
       console.error('Erro ao carregar conteúdo do gênero:', error);
     } finally {

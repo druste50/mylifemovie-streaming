@@ -50,16 +50,41 @@ const Index = () => {
         tmdbService.getTrendingTVShows()
       ]);
 
-      setTrendingMovies(trendingMoviesRes.results);
-      setPopularMovies(popularMoviesRes.results);
-      setTopRatedMovies(topRatedMoviesRes.results);
-      setPopularSeries(popularSeriesRes.results);
-      setTrendingSeries(trendingSeriesRes.results);
+      // Filtrar apenas conteúdo disponível no WarezCDN
+      console.log('Filtrando conteúdo disponível no WarezCDN...');
       
-      // Definir filme hero (primeiro dos trending)
-      if (trendingMoviesRes.results.length > 0) {
-        setHeroMovie(trendingMoviesRes.results[0]);
+      const [
+        filteredTrendingMovies,
+        filteredPopularMovies,
+        filteredTopRatedMovies,
+        filteredPopularSeries,
+        filteredTrendingSeries
+      ] = await Promise.all([
+        tmdbService.filterAvailableMovies(trendingMoviesRes.results),
+        tmdbService.filterAvailableMovies(popularMoviesRes.results),
+        tmdbService.filterAvailableMovies(topRatedMoviesRes.results),
+        tmdbService.filterAvailableTVShows(popularSeriesRes.results),
+        tmdbService.filterAvailableTVShows(trendingSeriesRes.results)
+      ]);
+
+      setTrendingMovies(filteredTrendingMovies);
+      setPopularMovies(filteredPopularMovies);
+      setTopRatedMovies(filteredTopRatedMovies);
+      setPopularSeries(filteredPopularSeries);
+      setTrendingSeries(filteredTrendingSeries);
+      
+      // Definir filme hero (primeiro dos trending disponíveis)
+      if (filteredTrendingMovies.length > 0) {
+        setHeroMovie(filteredTrendingMovies[0]);
       }
+      
+      console.log('Filtragem concluída:', {
+        trendingMovies: filteredTrendingMovies.length,
+        popularMovies: filteredPopularMovies.length,
+        topRatedMovies: filteredTopRatedMovies.length,
+        popularSeries: filteredPopularSeries.length,
+        trendingSeries: filteredTrendingSeries.length
+      });
       
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -90,13 +115,19 @@ const Index = () => {
         (item: any) => item.media_type === 'movie' || item.media_type === 'tv'
       );
       
-      setSearchResults(filteredResults);
+      // Filtrar apenas conteúdo disponível no WarezCDN
+      console.log(`Filtrando ${filteredResults.length} resultados de busca...`);
+      const availableResults = await tmdbService.filterAvailableContent(filteredResults);
       
-      if (filteredResults.length === 0) {
+      setSearchResults(availableResults);
+      
+      if (availableResults.length === 0) {
         toast({
-          title: "Nenhum resultado encontrado",
-          description: `Não encontramos nada para "${query}". Tente outras palavras-chave.`,
+          title: "Nenhum resultado disponível",
+          description: `Encontramos resultados para "${query}", mas nenhum está disponível para streaming no momento.`,
         });
+      } else {
+        console.log(`${availableResults.length} resultados disponíveis de ${filteredResults.length} encontrados`);
       }
     } catch (error) {
       console.error('Erro na busca:', error);
