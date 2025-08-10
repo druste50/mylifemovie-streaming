@@ -18,6 +18,8 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
   const [isLoadingStream, setIsLoadingStream] = useState(false);
   const [streamUrl, setStreamUrl] = useState<string | null>(null);
   const [showNativePlayer, setShowNativePlayer] = useState(false);
+  const [showError, setShowError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Construir URL do embed WarezCDN
   const getEmbedUrl = () => {
@@ -66,6 +68,27 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
   const isIOSSafari = () => {
     const userAgent = navigator.userAgent;
     return /iPad|iPhone|iPod/.test(userAgent) && /Safari/.test(userAgent) && !/CriOS|FxiOS/.test(userAgent);
+  };
+
+  // Detectar erro de carregamento do iframe
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 5000); // 5 segundos para carregar
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Função para lidar com erro do iframe
+  const handleIframeError = () => {
+    setShowError(true);
+    setIsLoading(false);
+  };
+
+  // Função para lidar com carregamento bem-sucedido do iframe
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+    setShowError(false);
   };
 
   // Tentar abrir no player nativo do iOS
@@ -347,6 +370,47 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
               </div>
             </div>
           </Card>
+        ) : showError ? (
+          // Mensagem de erro quando conteúdo não está disponível
+          <Card className="w-full h-full border-0 overflow-hidden bg-gradient-to-br from-red-900 to-black flex flex-col items-center justify-center p-8">
+            <div className="text-center space-y-6 max-w-md">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+              
+              <div className="bg-red-900/30 border border-red-600/50 rounded-lg p-6 mt-6">
+                <div className="text-red-200 space-y-3">
+                  <h4 className="text-lg font-semibold text-red-100">Conteúdo Indisponível</h4>
+                  <p className="text-sm">
+                    Este {type === 'movie' ? 'filme' : 'série'} não está disponível para streaming no momento.
+                  </p>
+                  <p className="text-sm">
+                    Isso pode acontecer quando o conteúdo ainda não foi sincronizado com nossos servidores.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-900/30 border border-blue-600/50 rounded-lg p-4 mt-4">
+                <p className="text-blue-200 text-sm">
+                  💡 <strong>Sugestão:</strong> Tente novamente mais tarde ou escolha outro título.
+                </p>
+              </div>
+              
+              <Button 
+                onClick={onClose}
+                className="bg-red-600 hover:bg-red-700 text-white mt-4"
+              >
+                Voltar
+              </Button>
+            </div>
+          </Card>
+        ) : isLoading ? (
+          // Loading state
+          <Card className="w-full h-full border-0 overflow-hidden bg-black flex flex-col items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+              <p className="text-white text-lg">Carregando {title}...</p>
+            </div>
+          </Card>
         ) : (
           // Player normal para outros dispositivos
           <Card className="w-full h-full border-0 overflow-hidden bg-black">
@@ -357,6 +421,8 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
               allow="autoplay; encrypted-media; fullscreen *; picture-in-picture"
               referrerPolicy="no-referrer"
               title={title}
+              onLoad={handleIframeLoad}
+              onError={handleIframeError}
               style={{ 
                 pointerEvents: 'auto',
                 isolation: 'isolate'

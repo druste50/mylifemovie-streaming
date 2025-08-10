@@ -144,36 +144,18 @@ class TMDBService {
     }
     
     try {
-      // URLs do WarezCDN para verificar
-      const warezUrls = [
-        `https://embed.warezcdn.link/${type === 'movie' ? 'filme' : 'serie'}/${imdbId}`,
-        `https://warezcdn.link/${type === 'movie' ? 'filme' : 'serie'}/${imdbId}`,
-        `https://embed.warezcdn.com/${type === 'movie' ? 'filme' : 'serie'}/${imdbId}`
-      ];
-      
-      // Tentar verificar disponibilidade
-      for (const url of warezUrls) {
-        try {
-          const response = await fetch(url, {
-            method: 'HEAD',
-            mode: 'no-cors',
-            cache: 'no-cache'
-          });
-          
-          // Se chegou até aqui sem erro, provavelmente existe
-          availabilityCache.set(cacheKey, true);
-          cacheTimestamps.set(cacheKey, now);
-          return true;
-        } catch (error) {
-          // Continuar tentando outras URLs
-          continue;
-        }
+      // Validação básica: verificar se o IMDB ID é válido
+      if (!imdbId || !imdbId.startsWith('tt') || imdbId.length < 7) {
+        availabilityCache.set(cacheKey, false);
+        cacheTimestamps.set(cacheKey, now);
+        return false;
       }
       
-      // Se nenhuma URL funcionou, marcar como indisponível
-      availabilityCache.set(cacheKey, false);
+      // Por enquanto, assumir que conteúdo com IMDB ID válido está disponível
+      // Isso evita problemas de conectividade e CORS, mas ainda filtra conteúdo sem IMDB ID
+      availabilityCache.set(cacheKey, true);
       cacheTimestamps.set(cacheKey, now);
-      return false;
+      return true;
       
     } catch (error) {
       console.warn(`Erro ao verificar disponibilidade no WarezCDN para ${imdbId}:`, error);
