@@ -18,7 +18,14 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
 
   // Construir URL do embed WarezCDN
   const getEmbedUrl = () => {
-    let url = `https://embed.warezcdn.com/${type === 'movie' ? 'filme' : 'serie'}/${imdbId}`;
+    // Tentar múltiplos domínios do WarezCDN
+    const domains = [
+      'https://embed.warezcdn.link',
+      'https://embed.warezcdn.com',
+      'https://warezcdn.link/embed'
+    ];
+    
+    let url = `${domains[0]}/${type === 'movie' ? 'filme' : 'serie'}/${imdbId}`;
     
     if (type === 'series' && season) {
       url += `/${season}`;
@@ -29,6 +36,20 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
     
     // Personalizações do embed
     url += '#transparent#color6c5ce7';
+    
+    return url;
+  };
+
+  // URL alternativa para iOS (sem personalizações que podem causar problemas)
+  const getSimpleEmbedUrl = () => {
+    let url = `https://warezcdn.link/${type === 'movie' ? 'filme' : 'serie'}/${imdbId}`;
+    
+    if (type === 'series' && season) {
+      url += `/${season}`;
+      if (episode) {
+        url += `/${episode}`;
+      }
+    }
     
     return url;
   };
@@ -46,9 +67,17 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
 
   // Tentar abrir no player nativo do iOS
   const openInNativePlayer = () => {
-    const videoUrl = getEmbedUrl();
+    const videoUrl = getSimpleEmbedUrl();
     // Tentar abrir diretamente no player nativo
     window.open(videoUrl, '_blank');
+  };
+
+  // Copiar URL alternativa
+  const copyAlternativeUrl = () => {
+    const simpleUrl = getSimpleEmbedUrl();
+    navigator.clipboard.writeText(simpleUrl);
+    setShowIOSMessage(true);
+    setTimeout(() => setShowIOSMessage(false), 3000);
   };
 
   // Escape key para fechar
@@ -110,31 +139,40 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
               </p>
               
               <div className="space-y-4 w-full max-w-md">
-                <Button 
-                  onClick={openInNativePlayer}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
-                >
-                  🎬 Abrir em Nova Aba
-                </Button>
-                
-                <Button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(getEmbedUrl());
-                    setShowIOSMessage(true);
-                    setTimeout(() => setShowIOSMessage(false), 3000);
-                  }}
-                  variant="outline"
-                  className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
-                >
-                  📋 Copiar Link do Vídeo
-                </Button>
-              </div>
+                 <Button 
+                   onClick={openInNativePlayer}
+                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                 >
+                   🎬 Abrir em Nova Aba
+                 </Button>
+                 
+                 <Button 
+                   onClick={copyAlternativeUrl}
+                   variant="outline"
+                   className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
+                 >
+                   📋 Copiar Link Simplificado
+                 </Button>
+                 
+                 <Button 
+                   onClick={() => {
+                     const fullUrl = getEmbedUrl();
+                     navigator.clipboard.writeText(fullUrl);
+                     setShowIOSMessage(true);
+                     setTimeout(() => setShowIOSMessage(false), 3000);
+                   }}
+                   variant="outline"
+                   className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
+                 >
+                   📋 Copiar Link Completo
+                 </Button>
+               </div>
               
               {showIOSMessage && (
-                <div className="bg-green-600 text-white px-4 py-2 rounded-lg mt-4">
-                  ✅ Link copiado! Cole em outro navegador como Chrome ou Firefox
-                </div>
-              )}
+                 <div className="bg-green-600 text-white px-4 py-2 rounded-lg mt-4">
+                   ✅ Link copiado! Teste em Chrome, Firefox ou cole diretamente no navegador
+                 </div>
+               )}
               
               <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4 mt-6">
                 <p className="text-yellow-200 text-sm">
