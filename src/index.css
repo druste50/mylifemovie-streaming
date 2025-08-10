@@ -1,0 +1,250 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Plataforma de Streaming - Design System Moderno */
+
+@layer base {
+  :root {
+    /* Cores Cinema Dark Theme */
+    --background: 220 13% 8%;
+    --foreground: 210 40% 98%;
+
+    --card: 220 13% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 220 13% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 346 87% 58%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 262 83% 58%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 220 13% 15%;
+    --muted-foreground: 220 9% 55%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 13% 20%;
+    --input: 220 13% 15%;
+    --ring: 346 87% 58%;
+
+    --radius: 0.75rem;
+
+    /* Gradientes cinematográficos */
+    --gradient-hero: linear-gradient(135deg, hsl(220 13% 8%) 0%, hsl(262 83% 20%) 50%, hsl(346 87% 25%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(220 13% 10%) 0%, hsl(220 13% 12%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(346 87% 58%) 0%, hsl(262 83% 58%) 100%);
+    --gradient-overlay: linear-gradient(180deg, transparent 0%, hsl(220 13% 8% / 0.8) 100%);
+
+    /* Sombras cinematográficas */
+    --shadow-card: 0 4px 20px hsl(220 13% 4% / 0.3);
+    --shadow-hero: 0 20px 60px hsl(346 87% 20% / 0.3);
+    --shadow-hover: 0 8px 30px hsl(346 87% 30% / 0.4);
+
+    /* Animações */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground overflow-x-hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  /* Gradientes de fundo */
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  /* Cards de filme */
+  .movie-card {
+    @apply relative overflow-hidden rounded-lg transition-all duration-300;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-card);
+  }
+  
+  .movie-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-hover);
+  }
+  
+  /* Overlay gradiente para imagens */
+  .overlay-gradient {
+    background: var(--gradient-overlay);
+  }
+  
+  /* Animações de entrada */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Efeito glass */
+  .glass {
+    backdrop-filter: blur(20px);
+    background: hsl(220 13% 10% / 0.8);
+    border: 1px solid hsl(220 13% 20% / 0.3);
+  }
+  
+  /* Esconder scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Line clamp utility */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Proteção contra anúncios e pop-ups no iframe */
+  iframe[src*="warezcdn"] {
+    pointer-events: auto;
+    isolation: isolate;
+  }
+  
+  /* Bloquear overlays de anúncios */
+  iframe[src*="warezcdn"]:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Barra de rolagem personalizada moderna */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(220 13% 10%);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, hsl(346 87% 58%) 0%, hsl(262 83% 58%) 100%);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, hsl(346 87% 65%) 0%, hsl(262 83% 65%) 100%);
+    box-shadow: 0 2px 8px hsl(346 87% 30% / 0.4);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: hsl(220 13% 10%);
+  }
+
+  /* Suporte para Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(346 87% 58%) hsl(220 13% 10%);
+  }
+}
