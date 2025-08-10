@@ -15,6 +15,9 @@ interface MoviePlayerProps {
 export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: MoviePlayerProps) {
   const [isMuted, setIsMuted] = useState(false);
   const [showIOSMessage, setShowIOSMessage] = useState(false);
+  const [isLoadingStream, setIsLoadingStream] = useState(false);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [showNativePlayer, setShowNativePlayer] = useState(false);
 
   // Construir URL do embed WarezCDN
   const getEmbedUrl = () => {
@@ -80,6 +83,50 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
     setTimeout(() => setShowIOSMessage(false), 3000);
   };
 
+  // Tentar extrair stream HLS para player nativo iOS
+  const tryNativePlayer = async () => {
+    setIsLoadingStream(true);
+    try {
+      // Tentar diferentes estratégias para obter o stream
+      const embedUrl = getEmbedUrl();
+      
+      // Estratégia 1: Tentar acessar diretamente possíveis endpoints HLS
+      const possibleStreams = [
+        `https://warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
+        `https://embed.warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
+        `https://warezcdn.link/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}/playlist.m3u8`
+      ];
+      
+      for (const streamUrl of possibleStreams) {
+        try {
+          const response = await fetch(streamUrl, { method: 'HEAD' });
+          if (response.ok) {
+            setStreamUrl(streamUrl);
+            setShowNativePlayer(true);
+            setIsLoadingStream(false);
+            return;
+          }
+        } catch (e) {
+          // Continuar tentando próximo URL
+        }
+      }
+      
+      // Se não encontrou stream direto, mostrar mensagem
+      setShowIOSMessage(true);
+      setTimeout(() => setShowIOSMessage(false), 3000);
+      
+    } catch (error) {
+      console.error('Erro ao tentar extrair stream:', error);
+    }
+    setIsLoadingStream(false);
+  };
+
+  // Verificar se o dispositivo suporta HLS nativo
+  const supportsNativeHLS = () => {
+    const video = document.createElement('video');
+    return video.canPlayType('application/vnd.apple.mpegurl') !== '';
+  };
+
   // Escape key para fechar
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -131,55 +178,106 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
         {isIOS() ? (
           // Interface especial para iOS
           <Card className="w-full h-full border-0 overflow-hidden bg-gradient-to-br from-gray-900 to-black flex flex-col items-center justify-center p-8">
-            <div className="text-center space-y-6">
-              <div className="text-6xl mb-4">📱</div>
-              <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
-              <p className="text-gray-300 text-lg mb-6">
-                Devido às limitações do iOS Safari, oferecemos estas opções:
-              </p>
-              
-              <div className="space-y-4 w-full max-w-md">
-                 <Button 
-                   onClick={openInNativePlayer}
-                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
-                 >
-                   🎬 Abrir em Nova Aba
-                 </Button>
-                 
-                 <Button 
-                   onClick={copyAlternativeUrl}
-                   variant="outline"
-                   className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
-                 >
-                   📋 Copiar Link Simplificado
-                 </Button>
-                 
-                 <Button 
-                   onClick={() => {
-                     const fullUrl = getEmbedUrl();
-                     navigator.clipboard.writeText(fullUrl);
-                     setShowIOSMessage(true);
-                     setTimeout(() => setShowIOSMessage(false), 3000);
-                   }}
-                   variant="outline"
-                   className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
-                 >
-                   📋 Copiar Link Completo
-                 </Button>
-               </div>
-              
-              {showIOSMessage && (
-                 <div className="bg-green-600 text-white px-4 py-2 rounded-lg mt-4">
-                   ✅ Link copiado! Teste em Chrome, Firefox ou cole diretamente no navegador
-                 </div>
-               )}
-              
-              <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4 mt-6">
-                <p className="text-yellow-200 text-sm">
-                  💡 <strong>Dica:</strong> Para melhor experiência no iOS, recomendamos usar Chrome ou Firefox em vez do Safari.
-                </p>
+            {showNativePlayer && streamUrl ? (
+              // Player nativo iOS com HLS
+              <div className="w-full h-full flex flex-col">
+                <div className="flex-1 flex items-center justify-center">
+                  <video
+                    className="w-full h-full max-h-[70vh] bg-black"
+                    controls
+                    playsInline
+                    preload="metadata"
+                    src={streamUrl}
+                    onError={(e) => {
+                      console.error('Erro no player nativo:', e);
+                      setShowNativePlayer(false);
+                      setStreamUrl(null);
+                    }}
+                  >
+                    Seu navegador não suporta reprodução de vídeo HTML5.
+                  </video>
+                </div>
+                <div className="mt-4 text-center">
+                  <Button 
+                    onClick={() => {
+                      setShowNativePlayer(false);
+                      setStreamUrl(null);
+                    }}
+                    variant="outline"
+                    className="border-gray-600 text-white hover:bg-gray-800"
+                  >
+                    ← Voltar às Opções
+                  </Button>
+                </div>
               </div>
-            </div>
+            ) : (
+              // Interface de opções
+              <div className="text-center space-y-6">
+                <div className="text-6xl mb-4">📱</div>
+                <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+                <p className="text-gray-300 text-lg mb-6">
+                  Escolha a melhor opção para assistir no iOS:
+                </p>
+                
+                <div className="space-y-4 w-full max-w-md">
+                  {supportsNativeHLS() && (
+                    <Button 
+                      onClick={tryNativePlayer}
+                      disabled={isLoadingStream}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg"
+                    >
+                      {isLoadingStream ? '🔄 Carregando...' : '🎬 Player Nativo iOS'}
+                    </Button>
+                  )}
+                  
+                   <Button 
+                     onClick={openInNativePlayer}
+                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                   >
+                     🌐 Abrir em Nova Aba
+                   </Button>
+                   
+                   <Button 
+                     onClick={copyAlternativeUrl}
+                     variant="outline"
+                     className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
+                   >
+                     📋 Copiar Link Simplificado
+                   </Button>
+                   
+                   <Button 
+                     onClick={() => {
+                       const fullUrl = getEmbedUrl();
+                       navigator.clipboard.writeText(fullUrl);
+                       setShowIOSMessage(true);
+                       setTimeout(() => setShowIOSMessage(false), 3000);
+                     }}
+                     variant="outline"
+                     className="w-full border-gray-600 text-white hover:bg-gray-800 py-3 text-lg"
+                   >
+                     📋 Copiar Link Completo
+                   </Button>
+                 </div>
+                
+                {showIOSMessage && (
+                   <div className="bg-green-600 text-white px-4 py-2 rounded-lg mt-4">
+                     ✅ Link copiado! Teste em Chrome, Firefox ou cole diretamente no navegador
+                   </div>
+                 )}
+                
+                <div className="bg-blue-900/30 border border-blue-600/50 rounded-lg p-4 mt-6">
+                  <p className="text-blue-200 text-sm">
+                    💡 <strong>Novo:</strong> Experimente o Player Nativo iOS para reprodução direta!
+                  </p>
+                </div>
+                
+                <div className="bg-yellow-900/30 border border-yellow-600/50 rounded-lg p-4 mt-2">
+                  <p className="text-yellow-200 text-sm">
+                    📱 Para melhor experiência, use Chrome ou Firefox em vez do Safari.
+                  </p>
+                </div>
+              </div>
+            )}
           </Card>
         ) : (
           // Player normal para outros dispositivos
