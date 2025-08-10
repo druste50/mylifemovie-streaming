@@ -4,6 +4,7 @@ import { tmdbService } from '@/services/tmdbService';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
 import { CategorySection } from '@/components/CategorySection';
+import { GenreSection } from '@/components/GenreSection';
 import { MoviePlayer } from '@/components/MoviePlayer';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,6 +18,7 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<(Movie | TVShow)[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [currentSection, setCurrentSection] = useState('home');
   const [selectedContent, setSelectedContent] = useState<{
     item: Movie | TVShow;
     imdbId: string;
@@ -149,14 +151,24 @@ const Index = () => {
     setSelectedContent(null);
   };
 
+  const handleNavigation = (section: string) => {
+    setCurrentSection(section);
+    setIsSearching(false);
+    setSearchResults([]);
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <Header onSearch={handleSearch} />
+      <Header 
+        onSearch={handleSearch}
+        onNavigate={handleNavigation}
+        currentSection={currentSection}
+      />
       
       {/* Espaçamento para o header fixo */}
       <div className="pt-16">
-        {/* Hero Section */}
-        {!isSearching && heroMovie && (
+        {/* Hero Section - apenas na home */}
+        {currentSection === 'home' && !isSearching && heroMovie && (
           <HeroSection
             movie={heroMovie}
             onPlay={() => handlePlayContent(heroMovie)}
@@ -192,8 +204,24 @@ const Index = () => {
           </div>
         )}
 
-        {/* Seções de conteúdo */}
-        {!isSearching && (
+        {/* Seção de Filmes por Gênero */}
+        {currentSection === 'movies' && !isSearching && (
+          <GenreSection
+            type="movie"
+            onItemClick={handlePlayContent}
+          />
+        )}
+
+        {/* Seção de Séries por Gênero */}
+        {currentSection === 'series' && !isSearching && (
+          <GenreSection
+            type="tv"
+            onItemClick={handlePlayContent}
+          />
+        )}
+
+        {/* Home - Seções de conteúdo */}
+        {currentSection === 'home' && !isSearching && (
           <>
             <CategorySection
               title="🔥 Em Alta Hoje"

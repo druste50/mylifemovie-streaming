@@ -9,9 +9,10 @@ interface CategorySectionProps {
   items: (Movie | TVShow)[];
   onItemClick?: (item: Movie | TVShow) => void;
   loading?: boolean;
+  showTitle?: boolean;
 }
 
-export function CategorySection({ title, items, onItemClick, loading = false }: CategorySectionProps) {
+export function CategorySection({ title, items, onItemClick, loading = false, showTitle = true }: CategorySectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -40,7 +41,7 @@ export function CategorySection({ title, items, onItemClick, loading = false }: 
     return (
       <section className="py-8">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-6 text-white">{title}</h2>
+          {showTitle && <h2 className="text-2xl font-bold mb-6 text-white">{title}</h2>}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {Array.from({ length: 6 }).map((_, index) => (
               <div
@@ -54,7 +55,7 @@ export function CategorySection({ title, items, onItemClick, loading = false }: 
     );
   }
 
-  if (!items.length) {
+  if (!items || items.length === 0) {
     return null;
   }
 
@@ -62,11 +63,36 @@ export function CategorySection({ title, items, onItemClick, loading = false }: 
     <section className="py-8">
       <div className="container mx-auto px-4">
         {/* Cabeçalho da seção */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-white">{title}</h2>
-          
-          {/* Controles de navegação - Desktop */}
-          <div className="hidden md:flex gap-2">
+        {showTitle && (
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white">{title}</h2>
+            
+            {/* Controles de navegação - Desktop */}
+            <div className="hidden md:flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 disabled:opacity-50"
+                onClick={() => scroll('left')}
+                disabled={!canScrollLeft}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20 disabled:opacity-50"
+                onClick={() => scroll('right')}
+                disabled={!canScrollRight}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!showTitle && (
+          <div className="hidden md:flex gap-2 justify-end mb-6">
             <Button
               variant="ghost"
               size="sm"
@@ -86,7 +112,7 @@ export function CategorySection({ title, items, onItemClick, loading = false }: 
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-        </div>
+        )}
 
         {/* Grid de filmes/séries */}
         <div className="relative">

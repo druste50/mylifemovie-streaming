@@ -7,10 +7,11 @@ import { Badge } from '@/components/ui/badge';
 interface HeaderProps {
   onSearch?: (query: string) => void;
   onMenuToggle?: () => void;
+  onNavigate?: (section: string) => void;
   currentSection?: string;
 }
 
-export function Header({ onSearch, onMenuToggle, currentSection = 'home' }: HeaderProps) {
+export function Header({ onSearch, onMenuToggle, onNavigate, currentSection = 'home' }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -54,6 +55,7 @@ export function Header({ onSearch, onMenuToggle, currentSection = 'home' }: Head
               {navigationItems.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
+                  onClick={() => onNavigate?.(id)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                     currentSection === id
                       ? 'bg-primary/20 text-primary'
@@ -121,6 +123,10 @@ export function Header({ onSearch, onMenuToggle, currentSection = 'home' }: Head
               {navigationItems.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
+                  onClick={() => {
+                    onNavigate?.(id);
+                    setIsMobileMenuOpen(false);
+                  }}
                   className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
                     currentSection === id
                       ? 'bg-primary/20 text-primary'
