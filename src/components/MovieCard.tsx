@@ -27,10 +27,10 @@ export function MovieCard({ item, onClick, showPlayButton = true }: MovieCardPro
 
   return (
     <Card 
-      className="movie-card group cursor-pointer border-0 p-0"
+      className="movie-card group cursor-pointer border-0 p-0 w-48 flex-shrink-0 scroll-item"
       onClick={onClick}
     >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-lg">
+      <div className="relative w-48 h-72 overflow-hidden rounded-lg">
         <img
           src={posterUrl}
           alt={title}

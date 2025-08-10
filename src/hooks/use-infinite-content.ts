@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Movie, TVShow } from '@/types/movie';
 import { tmdbService } from '@/services/tmdbService';
 
@@ -82,11 +82,17 @@ export function useInfiniteContent({
   }, [type, genreId]);
 
   const loadMore = useCallback(async () => {
-    if (loading || !hasMore) return;
+    console.log(`🔄 loadMore: ${type}, loading: ${loading}, hasMore: ${hasMore}, currentPage: ${currentPage}`);
+    if (loading || !hasMore) {
+      console.log(`⏹️ loadMore: Cancelado - loading: ${loading}, hasMore: ${hasMore}`);
+      return;
+    }
 
+    console.log(`📥 loadMore: Iniciando carregamento da página ${currentPage} para ${type}`);
     setLoading(true);
     try {
       const response = await fetchContent(currentPage);
+      console.log(`✅ loadMore: Recebido ${response.results.length} itens para ${type}`);
       
       setItems(prev => {
         // Evitar duplicatas e filtrar itens inválidos
@@ -116,6 +122,17 @@ export function useInfiniteContent({
     setCurrentPage(initialPage);
     setTotalPages(0);
   }, [initialPage]);
+
+  // Carregar conteúdo inicial
+  useEffect(() => {
+    console.log(`🔄 useInfiniteContent: Inicializando ${type}, items: ${items.length}, loading: ${loading}, hasMore: ${hasMore}`);
+    if (items.length === 0 && !loading && hasMore) {
+      console.log(`📥 useInfiniteContent: Carregando conteúdo inicial para ${type}`);
+      loadMore();
+    } else {
+      console.log(`⏸️ useInfiniteContent: Não carregando - items: ${items.length}, loading: ${loading}, hasMore: ${hasMore}`);
+    }
+  }, [type, genreId, items.length, loading, hasMore]);
 
   return {
     items,

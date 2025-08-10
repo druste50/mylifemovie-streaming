@@ -191,55 +191,81 @@ const Index = () => {
           </div>
         )}
 
-        {/* Seção de Filmes por Gênero */}
+        {/* Seção de Filmes - Apenas Gêneros */}
         {currentSection === 'movies' && !isSearching && (
-          <GenreSection
-            type="movie"
-            onItemClick={handlePlayContent}
-          />
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center mb-8 space-y-4">
+              <h1 className="text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+                🎬 <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Filmes</span>
+              </h1>
+              <p className="text-gray-300 text-xl max-w-2xl mx-auto">Explore nossa vasta coleção de filmes organizados por gênero. Encontre exatamente o que você está procurando!</p>
+            </div>
+            
+            <GenreSection contentType="movies" />
+          </div>
         )}
 
-        {/* Seção de Séries por Gênero */}
+        {/* Seção de Séries - Apenas Gêneros */}
         {currentSection === 'series' && !isSearching && (
-          <GenreSection
-            type="tv"
-            onItemClick={handlePlayContent}
-          />
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center mb-8 space-y-4">
+              <h1 className="text-5xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+                📺 <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">Séries</span>
+              </h1>
+              <p className="text-gray-300 text-xl max-w-2xl mx-auto">Descubra séries incríveis e envolventes organizadas por gênero. Sua próxima obsessão está aqui!</p>
+            </div>
+            
+            <GenreSection contentType="tv" />
+          </div>
         )}
 
         {/* Home - Seções de conteúdo */}
         {currentSection === 'home' && !isSearching && (
-          <>
-            <CategorySectionInfinite
-              title="🔥 Em Alta Hoje"
-              type="trending-movies"
-              onItemClick={handlePlayContent}
-            />
+          <div className="container mx-auto px-4 py-8">
+            {/* Seção de Filmes */}
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
+                🎬 <span>Filmes</span>
+              </h2>
+              
+              <CategorySectionInfinite
+                title="🔥 Em Alta Hoje"
+                type="trending-movies"
+                onItemClick={handlePlayContent}
+              />
 
-            <CategorySectionInfinite
-              title="🎬 Filmes Populares"
-              type="popular-movies"
-              onItemClick={handlePlayContent}
-            />
+              <CategorySectionInfinite
+                title="🎬 Populares"
+                type="popular-movies"
+                onItemClick={handlePlayContent}
+              />
 
-            <CategorySectionInfinite
-              title="⭐ Mais Bem Avaliados"
-              type="top-rated-movies"
-              onItemClick={handlePlayContent}
-            />
+              <CategorySectionInfinite
+                title="⭐ Mais Bem Avaliados"
+                type="top-rated-movies"
+                onItemClick={handlePlayContent}
+              />
+            </div>
 
-            <CategorySectionInfinite
-              title="📺 Séries Populares"
-              type="popular-tv"
-              onItemClick={handlePlayContent}
-            />
+            {/* Seção de Séries */}
+            <div className="mb-12">
+              <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-2">
+                📺 <span>Séries</span>
+              </h2>
+              
+              <CategorySectionInfinite
+                title="🚀 Em Alta"
+                type="trending-tv"
+                onItemClick={handlePlayContent}
+              />
 
-            <CategorySectionInfinite
-              title="🚀 Séries em Alta"
-              type="trending-tv"
-              onItemClick={handlePlayContent}
-            />
-          </>
+              <CategorySectionInfinite
+                title="📺 Populares"
+                type="popular-tv"
+                onItemClick={handlePlayContent}
+              />
+            </div>
+          </div>
         )}
       </div>
 

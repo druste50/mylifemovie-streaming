@@ -408,7 +408,8 @@ class TMDBService {
             const isAvailable = await this.checkWarezCDNAvailability(externalIds.imdb_id, 'movie');
             return isAvailable ? movie : null;
           }
-          return null;
+          // Se não tem IMDB ID, incluir mesmo assim (assumir disponível)
+          return movie;
         } catch (error) {
           console.warn(`Erro ao verificar filme ${movie.id}:`, error);
           // Em caso de erro, incluir o filme
@@ -440,7 +441,8 @@ class TMDBService {
             const isAvailable = await this.checkWarezCDNAvailability(externalIds.imdb_id, 'tv');
             return isAvailable ? tvShow : null;
           }
-          return null;
+          // Se não tem IMDB ID, incluir mesmo assim (assumir disponível)
+          return tvShow;
         } catch (error) {
           console.warn(`Erro ao verificar série ${tvShow.id}:`, error);
           // Em caso de erro, incluir a série

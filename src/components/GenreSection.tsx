@@ -4,24 +4,31 @@ import { tmdbService } from '@/services/tmdbService';
 import { GenreSectionInfinite } from './GenreSectionInfinite';
 import { Button } from '@/components/ui/button';
 
-export function GenreSection() {
+interface GenreSectionProps {
+  contentType?: 'movies' | 'tv';
+}
+
+export function GenreSection({ contentType = 'movies' }: GenreSectionProps) {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
-  const [contentType, setContentType] = useState<'movies' | 'tv'>('movies');
 
   useEffect(() => {
     loadGenres();
-  }, []);
+  }, [contentType]);
 
   const loadGenres = async () => {
     try {
-      const movieGenres = await tmdbService.getMovieGenres();
-      setGenres(movieGenres);
-      if (movieGenres.length > 0) {
-        setSelectedGenre(movieGenres[0]);
+      const response = contentType === 'movies' 
+        ? await tmdbService.getMovieGenres()
+        : await tmdbService.getTVGenres();
+      const genresList = response.genres || [];
+      setGenres(genresList);
+      if (genresList.length > 0) {
+        setSelectedGenre(genresList[0]);
       }
     } catch (error) {
       console.error('Erro ao carregar gêneros:', error);
+      setGenres([]); // Garantir que genres seja sempre um array
     }
   };
 
@@ -29,41 +36,25 @@ export function GenreSection() {
     setSelectedGenre(genre);
   };
 
-  const handleContentTypeChange = (type: 'movies' | 'tv') => {
-    setContentType(type);
-  };
-
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4">
-        <h2 className="text-2xl font-bold text-white">Explorar por Gênero</h2>
-        
-        {/* Seletor de tipo de conteúdo */}
-        <div className="flex gap-2">
-          <Button
-            variant={contentType === 'movies' ? 'default' : 'outline'}
-            onClick={() => handleContentTypeChange('movies')}
-            className="text-sm"
-          >
-            Filmes
-          </Button>
-          <Button
-            variant={contentType === 'tv' ? 'default' : 'outline'}
-            onClick={() => handleContentTypeChange('tv')}
-            className="text-sm"
-          >
-            Séries
-          </Button>
+    <div className="space-y-10">
+      {/* Seletor de gêneros */}
+      <div className="space-y-6">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-white mb-2">Escolha um Gênero</h2>
+          <p className="text-gray-400">Clique em um gênero para explorar o conteúdo</p>
         </div>
         
-        {/* Seletor de gêneros */}
-        <div className="flex flex-wrap gap-2">
+        <div className="genre-grid grid gap-3">
           {genres.map((genre) => (
             <Button
               key={genre.id}
               variant={selectedGenre?.id === genre.id ? 'default' : 'outline'}
               onClick={() => handleGenreChange(genre)}
-              className="text-sm"
+              className={`genre-button text-sm py-3 px-4 rounded-full font-medium ${
+                selectedGenre?.id === genre.id ? 'active' : ''
+              }`}
+              size="sm"
             >
               {genre.name}
             </Button>

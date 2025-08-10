@@ -1,4 +1,5 @@
-@tailwind base;
+/* Import Tailwind base styles */
+@import 'tailwindcss/base';
 @tailwind components;
 @tailwind utilities;
 
@@ -246,5 +247,111 @@
   * {
     scrollbar-width: thin;
     scrollbar-color: hsl(346 87% 58%) hsl(220 13% 10%);
+  }
+
+  /* Otimizações para scroll horizontal */
+  .scroll-container {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Melhorias para touch em mobile */
+  @media (hover: none) and (pointer: coarse) {
+    .scroll-container {
+      scroll-snap-type: x proximity;
+      overscroll-behavior-x: contain;
+    }
+    
+    .scroll-item {
+      scroll-snap-align: start;
+    }
+  }
+
+  /* Otimizações de performance */
+  .movie-card {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+
+  .scroll-item {
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  /* Genre button animations and styles */
+  .genre-button {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
+  }
+
+  .genre-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  .genre-button.active {
+    background: linear-gradient(135deg, hsl(346 87% 58%) 0%, hsl(262 83% 58%) 100%);
+    box-shadow: 0 4px 20px rgba(346, 87%, 58%, 0.4);
+  }
+
+  .genre-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+  }
+
+  .genre-button:hover::before {
+    left: 100%;
+  }
+
+  /* Responsive grid improvements */
+  @media (max-width: 640px) {
+    .genre-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 768px) {
+    .genre-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .genre-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (min-width: 1025px) and (max-width: 1280px) {
+    .genre-grid {
+      grid-template-columns: repeat(6, 1fr);
+    }
+  }
+
+  @media (min-width: 1281px) {
+    .genre-grid {
+      grid-template-columns: repeat(8, 1fr);
+    }
+  }
+
+  /* Smooth scrolling para todos os elementos */
+  .scroll-smooth {
+    scroll-behavior: smooth;
   }
 }
