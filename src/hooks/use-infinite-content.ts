@@ -89,9 +89,13 @@ export function useInfiniteContent({
       const response = await fetchContent(currentPage);
       
       setItems(prev => {
-        // Evitar duplicatas
+        // Evitar duplicatas e filtrar itens inválidos
         const existingIds = new Set(prev.map(item => item.id));
-        const newItems = response.results.filter(item => !existingIds.has(item.id));
+        const newItems = response.results.filter(item => 
+          item && 
+          item.id && 
+          !existingIds.has(item.id)
+        );
         return [...prev, ...newItems];
       });
       

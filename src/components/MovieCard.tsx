@@ -12,13 +12,18 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ item, onClick, showPlayButton = true }: MovieCardProps) {
+  // Verificação de segurança para evitar erro quando item é undefined
+  if (!item) {
+    return null;
+  }
+  
   const isMovie = 'title' in item;
   const title = isMovie ? item.title : item.name;
   const releaseDate = isMovie ? item.release_date : item.first_air_date;
   const posterUrl = tmdbService.getPosterUrl(item.poster_path);
   
   const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
-  const rating = item.vote_average.toFixed(1);
+  const rating = item.vote_average ? item.vote_average.toFixed(1) : '0.0';
 
   return (
     <Card 

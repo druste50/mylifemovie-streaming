@@ -417,7 +417,7 @@ class TMDBService {
       });
       
       const batchResults = await Promise.all(batchPromises);
-      availableMovies.push(...batchResults.filter(movie => movie !== null));
+      availableMovies.push(...batchResults.filter(movie => movie !== null && movie !== undefined));
     }
     
     return availableMovies;
@@ -449,7 +449,7 @@ class TMDBService {
       });
       
       const batchResults = await Promise.all(batchPromises);
-      availableTVShows.push(...batchResults.filter(tvShow => tvShow !== null));
+      availableTVShows.push(...batchResults.filter(tvShow => tvShow !== null && tvShow !== undefined));
     }
     
     return availableTVShows;
