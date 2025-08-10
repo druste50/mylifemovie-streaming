@@ -74,10 +74,33 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 5000); // 5 segundos para carregar
+      // Verificar se o iframe carregou conteúdo de erro do WarezCDN
+      checkForWarezCDNError();
+    }, 8000); // 8 segundos para carregar e detectar erros
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Verificar se o iframe contém mensagem de erro do WarezCDN
+  const checkForWarezCDNError = () => {
+    try {
+      const iframe = document.querySelector('iframe[title="' + title + '"]') as HTMLIFrameElement;
+      if (iframe && iframe.contentDocument) {
+        const iframeContent = iframe.contentDocument.body.innerText || '';
+        // Detectar mensagens de erro típicas do WarezCDN
+        if (iframeContent.includes('Estranho') || 
+            iframeContent.includes('problema com o seu video') ||
+            iframeContent.includes('warezcdn.link') ||
+            iframeContent.includes('Verifique o link')) {
+          setShowError(true);
+          setIsLoading(false);
+        }
+      }
+    } catch (e) {
+      // Erro de CORS - não conseguimos acessar o conteúdo do iframe
+      // Isso é normal e esperado
+    }
+  };
 
   // Função para lidar com erro do iframe
   const handleIframeError = () => {
@@ -89,6 +112,10 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
   const handleIframeLoad = () => {
     setIsLoading(false);
     setShowError(false);
+    // Verificar após um tempo se há erro no conteúdo
+    setTimeout(() => {
+      checkForWarezCDNError();
+    }, 3000);
   };
 
   // Tentar abrir no player nativo do iOS
@@ -371,33 +398,33 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
             </div>
           </Card>
         ) : showError ? (
-          // Mensagem de erro quando conteúdo não está disponível
-          <Card className="w-full h-full border-0 overflow-hidden bg-gradient-to-br from-red-900 to-black flex flex-col items-center justify-center p-8">
+          // Mensagem quando conteúdo ainda não está disponível
+          <Card className="w-full h-full border-0 overflow-hidden bg-gradient-to-br from-orange-900 to-black flex flex-col items-center justify-center p-8">
             <div className="text-center space-y-6 max-w-md">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="text-6xl mb-4">⏳</div>
               <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
               
-              <div className="bg-red-900/30 border border-red-600/50 rounded-lg p-6 mt-6">
-                <div className="text-red-200 space-y-3">
-                  <h4 className="text-lg font-semibold text-red-100">Conteúdo Indisponível</h4>
+              <div className="bg-orange-900/30 border border-orange-600/50 rounded-lg p-6 mt-6">
+                <div className="text-orange-200 space-y-3">
+                  <h4 className="text-lg font-semibold text-orange-100">Ainda não disponível</h4>
                   <p className="text-sm">
-                    Este {type === 'movie' ? 'filme' : 'série'} não está disponível para streaming no momento.
+                    Este {type === 'movie' ? 'filme' : 'série'} ainda não está disponível, mas estará em breve!
                   </p>
                   <p className="text-sm">
-                    Isso pode acontecer quando o conteúdo ainda não foi sincronizado com nossos servidores.
+                    Estamos trabalhando para adicionar mais conteúdo constantemente.
                   </p>
                 </div>
               </div>
               
               <div className="bg-blue-900/30 border border-blue-600/50 rounded-lg p-4 mt-4">
                 <p className="text-blue-200 text-sm">
-                  💡 <strong>Sugestão:</strong> Tente novamente mais tarde ou escolha outro título.
+                  ⏰ <strong>Em breve:</strong> Volte em alguns dias para conferir se já está disponível!
                 </p>
               </div>
               
               <Button 
                 onClick={onClose}
-                className="bg-red-600 hover:bg-red-700 text-white mt-4"
+                className="bg-orange-600 hover:bg-orange-700 text-white mt-4"
               >
                 Voltar
               </Button>
