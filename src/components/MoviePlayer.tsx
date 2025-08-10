@@ -83,42 +83,39 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
     setTimeout(() => setShowIOSMessage(false), 3000);
   };
 
-  // Tentar extrair stream HLS para player nativo iOS
+  // Tentar player nativo iOS
   const tryNativePlayer = async () => {
     setIsLoadingStream(true);
+    
     try {
-      // Tentar diferentes estratégias para obter o stream
-      const embedUrl = getEmbedUrl();
+      // Usar diretamente o embed URL simplificado no player nativo
+      // O Safari iOS pode conseguir extrair o stream automaticamente
+      const embedUrl = getSimpleEmbedUrl();
       
-      // Estratégia 1: Tentar acessar diretamente possíveis endpoints HLS
+      // Lista de possíveis URLs de stream para tentar
       const possibleStreams = [
+        // Tentar URLs de stream diretos primeiro
         `https://warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
         `https://embed.warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
-        `https://warezcdn.link/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}/playlist.m3u8`
+        `https://warezcdn.link/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}/playlist.m3u8`,
+        // Como fallback, usar o embed URL diretamente
+        embedUrl
       ];
       
-      for (const streamUrl of possibleStreams) {
-        try {
-          const response = await fetch(streamUrl, { method: 'HEAD' });
-          if (response.ok) {
-            setStreamUrl(streamUrl);
-            setShowNativePlayer(true);
-            setIsLoadingStream(false);
-            return;
-          }
-        } catch (e) {
-          // Continuar tentando próximo URL
-        }
-      }
+      // Tentar o primeiro stream disponível
+      const streamUrl = possibleStreams[0];
       
-      // Se não encontrou stream direto, mostrar mensagem
-      setShowIOSMessage(true);
-      setTimeout(() => setShowIOSMessage(false), 3000);
+      console.log('Tentando carregar stream:', streamUrl);
+      
+      setStreamUrl(streamUrl);
+      setShowNativePlayer(true);
+      setIsLoadingStream(false);
       
     } catch (error) {
       console.error('Erro ao tentar extrair stream:', error);
+      alert('Erro ao carregar player nativo. Tente as outras opções.');
+      setIsLoadingStream(false);
     }
-    setIsLoadingStream(false);
   };
 
   // Verificar se o dispositivo suporta HLS nativo
@@ -190,8 +187,32 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
                     src={streamUrl}
                     onError={(e) => {
                       console.error('Erro no player nativo:', e);
-                      setShowNativePlayer(false);
-                      setStreamUrl(null);
+                      
+                      // Tentar próximo URL da lista
+                      const possibleStreams = [
+                        `https://warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
+                        `https://embed.warezcdn.link/api/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}.m3u8`,
+                        `https://warezcdn.link/stream/${imdbId}${type === 'series' && season ? `/${season}${episode ? `/${episode}` : ''}` : ''}/playlist.m3u8`,
+                        getSimpleEmbedUrl()
+                      ];
+                      
+                      const currentIndex = possibleStreams.indexOf(streamUrl);
+                      const nextIndex = currentIndex + 1;
+                      
+                      if (nextIndex < possibleStreams.length) {
+                        console.log('Tentando próximo stream:', possibleStreams[nextIndex]);
+                        setStreamUrl(possibleStreams[nextIndex]);
+                      } else {
+                        alert('Não foi possível reproduzir o vídeo. Tente as outras opções disponíveis.');
+                        setShowNativePlayer(false);
+                        setStreamUrl(null);
+                      }
+                    }}
+                    onLoadStart={() => {
+                      console.log('Iniciando carregamento do vídeo:', streamUrl);
+                    }}
+                    onCanPlay={() => {
+                      console.log('Vídeo pronto para reprodução');
                     }}
                   >
                     Seu navegador não suporta reprodução de vídeo HTML5.
