@@ -36,6 +36,8 @@ const Index = () => {
     try {
       setLoading(true);
       
+      console.log('🚀 Buscando conteúdo do TMDB (múltiplas páginas)...');
+      
       const [
         trendingMoviesRes,
         popularMoviesRes,
@@ -43,15 +45,23 @@ const Index = () => {
         popularSeriesRes,
         trendingSeriesRes
       ] = await Promise.all([
-        tmdbService.getTrendingMovies(),
-        tmdbService.getPopularMovies(),
-        tmdbService.getTopRatedMovies(),
-        tmdbService.getPopularTVShows(),
-        tmdbService.getTrendingTVShows()
+        tmdbService.getTrendingMovies(3), // 3 páginas = ~60 filmes
+        tmdbService.getPopularMovies(3),  // 3 páginas = ~60 filmes
+        tmdbService.getTopRatedMovies(3), // 3 páginas = ~60 filmes
+        tmdbService.getPopularTVShows(3), // 3 páginas = ~60 séries
+        tmdbService.getTrendingTVShows(3) // 3 páginas = ~60 séries
       ]);
 
+      console.log('📊 Total buscado do TMDB:', {
+        trendingMovies: trendingMoviesRes.results.length,
+        popularMovies: popularMoviesRes.results.length,
+        topRatedMovies: topRatedMoviesRes.results.length,
+        popularSeries: popularSeriesRes.results.length,
+        trendingSeries: trendingSeriesRes.results.length
+      });
+
       // Filtrar apenas conteúdo disponível no WarezCDN
-      console.log('Filtrando conteúdo disponível no WarezCDN...');
+      console.log('🔍 Filtrando conteúdo disponível no WarezCDN...');
       
       const [
         filteredTrendingMovies,
@@ -78,12 +88,12 @@ const Index = () => {
         setHeroMovie(filteredTrendingMovies[0]);
       }
       
-      console.log('Filtragem concluída:', {
-        trendingMovies: filteredTrendingMovies.length,
-        popularMovies: filteredPopularMovies.length,
-        topRatedMovies: filteredTopRatedMovies.length,
-        popularSeries: filteredPopularSeries.length,
-        trendingSeries: filteredTrendingSeries.length
+      console.log('✅ Filtragem concluída - Conteúdo disponível:', {
+        trendingMovies: `${filteredTrendingMovies.length}/${trendingMoviesRes.results.length}`,
+        popularMovies: `${filteredPopularMovies.length}/${popularMoviesRes.results.length}`,
+        topRatedMovies: `${filteredTopRatedMovies.length}/${topRatedMoviesRes.results.length}`,
+        popularSeries: `${filteredPopularSeries.length}/${popularSeriesRes.results.length}`,
+        trendingSeries: `${filteredTrendingSeries.length}/${trendingSeriesRes.results.length}`
       });
       
     } catch (error) {

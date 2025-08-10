@@ -54,17 +54,23 @@ export function GenreSection({ type, onItemClick }: GenreSectionProps) {
   const loadGenreContent = async (genreId: number) => {
     try {
       setContentLoading(true);
+      
+      const genreName = genres.find(g => g.id === genreId)?.name || 'Desconhecido';
+      console.log(`🎭 Buscando ${type === 'movie' ? 'filmes' : 'séries'} do gênero "${genreName}" (múltiplas páginas)...`);
+      
       const response = type === 'movie'
-        ? await tmdbService.getMoviesByGenre(genreId)
-        : await tmdbService.getTVShowsByGenre(genreId);
+        ? await tmdbService.getMoviesByGenre(genreId, 5) // 5 páginas = ~100 filmes
+        : await tmdbService.getTVShowsByGenre(genreId, 5); // 5 páginas = ~100 séries
+      
+      console.log(`📊 Total buscado do TMDB para "${genreName}": ${response.results.length} itens`);
       
       // Filtrar apenas conteúdo disponível no WarezCDN
-      console.log(`Filtrando ${response.results.length} itens do gênero...`);
+      console.log(`🔍 Filtrando conteúdo disponível no WarezCDN para "${genreName}"...`);
       const availableContent = type === 'movie'
         ? await tmdbService.filterAvailableMovies(response.results)
         : await tmdbService.filterAvailableTVShows(response.results);
       
-      console.log(`${availableContent.length} itens disponíveis de ${response.results.length} encontrados`);
+      console.log(`✅ Conteúdo disponível para "${genreName}": ${availableContent.length}/${response.results.length} itens`);
       setGenreContent(availableContent);
     } catch (error) {
       console.error('Erro ao carregar conteúdo do gênero:', error);

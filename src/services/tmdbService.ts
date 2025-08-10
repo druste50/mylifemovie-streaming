@@ -27,6 +27,12 @@ function logValidationStats() {
   console.log(`📊 WarezCDN Stats: ${total} validações | ${availabilityRate}% disponível | ${cacheHitRate}% cache hits | ${errors} erros`);
 }
 
+// Função para log de busca de conteúdo
+function logContentFetch(category: string, totalFetched: number, availableAfterFilter: number) {
+  const availabilityRate = totalFetched > 0 ? ((availableAfterFilter / totalFetched) * 100).toFixed(1) : '0';
+  console.log(`🎬 ${category}: ${totalFetched} itens buscados do TMDB → ${availableAfterFilter} disponíveis (${availabilityRate}%)`);
+}
+
 class TMDBService {
   private async fetchTMDB(endpoint: string, params: Record<string, string | number> = {}): Promise<any> {
     const url = new URL(`${TMDB_BASE_URL}${endpoint}`);
@@ -50,19 +56,76 @@ class TMDBService {
     }
   }
 
-  // Filmes populares
-  async getPopularMovies(page: number = 1): Promise<TMDBResponse> {
-    return this.fetchTMDB('/movie/popular', { page });
+  // Filmes populares (múltiplas páginas)
+  async getPopularMovies(maxPages: number = 3): Promise<TMDBResponse> {
+    const allResults: Movie[] = [];
+    let totalPages = 1;
+    let totalResults = 0;
+    
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.fetchTMDB('/movie/popular', { page });
+      allResults.push(...response.results);
+      totalPages = response.total_pages;
+      totalResults = response.total_results;
+      
+      // Se chegamos ao fim das páginas disponíveis, parar
+      if (page >= totalPages) break;
+    }
+    
+    return {
+      results: allResults,
+      page: 1,
+      total_pages: totalPages,
+      total_results: totalResults
+    };
   }
 
-  // Filmes em alta
-  async getTrendingMovies(): Promise<TMDBResponse> {
-    return this.fetchTMDB('/trending/movie/day');
+  // Filmes em alta (múltiplas páginas)
+  async getTrendingMovies(maxPages: number = 3): Promise<TMDBResponse> {
+    const allResults: Movie[] = [];
+    let totalPages = 1;
+    let totalResults = 0;
+    
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.fetchTMDB('/trending/movie/day', { page });
+      allResults.push(...response.results);
+      totalPages = response.total_pages;
+      totalResults = response.total_results;
+      
+      // Se chegamos ao fim das páginas disponíveis, parar
+      if (page >= totalPages) break;
+    }
+    
+    return {
+      results: allResults,
+      page: 1,
+      total_pages: totalPages,
+      total_results: totalResults
+    };
   }
 
-  // Filmes mais bem avaliados
-  async getTopRatedMovies(page: number = 1): Promise<TMDBResponse> {
-    return this.fetchTMDB('/movie/top_rated', { page });
+  // Filmes mais bem avaliados (múltiplas páginas)
+  async getTopRatedMovies(maxPages: number = 3): Promise<TMDBResponse> {
+    const allResults: Movie[] = [];
+    let totalPages = 1;
+    let totalResults = 0;
+    
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.fetchTMDB('/movie/top_rated', { page });
+      allResults.push(...response.results);
+      totalPages = response.total_pages;
+      totalResults = response.total_results;
+      
+      // Se chegamos ao fim das páginas disponíveis, parar
+      if (page >= totalPages) break;
+    }
+    
+    return {
+      results: allResults,
+      page: 1,
+      total_pages: totalPages,
+      total_results: totalResults
+    };
   }
 
   // Filmes em cartaz
@@ -85,14 +148,34 @@ class TMDBService {
     return this.fetchTMDB('/search/movie', { query, page });
   }
 
-  // Séries populares
-  async getPopularTVShows(page: number = 1): Promise<{ results: TVShow[] }> {
-    return this.fetchTMDB('/tv/popular', { page });
+  // Séries populares (múltiplas páginas)
+  async getPopularTVShows(maxPages: number = 3): Promise<{ results: TVShow[] }> {
+    const allResults: TVShow[] = [];
+    
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.fetchTMDB('/tv/popular', { page });
+      allResults.push(...response.results);
+      
+      // Se chegamos ao fim das páginas disponíveis, parar
+      if (page >= response.total_pages) break;
+    }
+    
+    return { results: allResults };
   }
 
-  // Séries em alta
-  async getTrendingTVShows(): Promise<{ results: TVShow[] }> {
-    return this.fetchTMDB('/trending/tv/day');
+  // Séries em alta (múltiplas páginas)
+  async getTrendingTVShows(maxPages: number = 3): Promise<{ results: TVShow[] }> {
+    const allResults: TVShow[] = [];
+    
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.fetchTMDB('/trending/tv/day', { page });
+      allResults.push(...response.results);
+      
+      // Se chegamos ao fim das páginas disponíveis, parar
+      if (page >= response.total_pages) break;
+    }
+    
+    return { results: allResults };
   }
 
   // Detalhes de uma série
@@ -115,14 +198,43 @@ class TMDBService {
     return this.fetchTMDB('/genre/tv/list');
   }
 
-  // Filmes por gênero
-  async getMoviesByGenre(genreId: number, page: number = 1): Promise<TMDBResponse> {
-    return this.fetchTMDB('/discover/movie', { with_genres: genreId, page });
+  // Filmes por gênero (múltiplas páginas)
+  async getMoviesByGenre(genreId: number, maxPages: number = 5): Promise<TMDBResponse> {
+    const allResults: Movie[] = [];
+    let totalPages = 1;
+    let totalResults = 0;
+    
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.fetchTMDB('/discover/movie', { with_genres: genreId, page });
+      allResults.push(...response.results);
+      totalPages = response.total_pages;
+      totalResults = response.total_results;
+      
+      // Se chegamos ao fim das páginas disponíveis, parar
+      if (page >= totalPages) break;
+    }
+    
+    return {
+      results: allResults,
+      page: 1,
+      total_pages: totalPages,
+      total_results: totalResults
+    };
   }
 
-  // Séries por gênero
-  async getTVShowsByGenre(genreId: number, page: number = 1): Promise<{ results: TVShow[] }> {
-    return this.fetchTMDB('/discover/tv', { with_genres: genreId, page });
+  // Séries por gênero (múltiplas páginas)
+  async getTVShowsByGenre(genreId: number, maxPages: number = 5): Promise<{ results: TVShow[] }> {
+    const allResults: TVShow[] = [];
+    
+    for (let page = 1; page <= maxPages; page++) {
+      const response = await this.fetchTMDB('/discover/tv', { with_genres: genreId, page });
+      allResults.push(...response.results);
+      
+      // Se chegamos ao fim das páginas disponíveis, parar
+      if (page >= response.total_pages) break;
+    }
+    
+    return { results: allResults };
   }
 
   // URLs de imagens
