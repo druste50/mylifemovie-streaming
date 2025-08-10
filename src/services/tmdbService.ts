@@ -180,19 +180,15 @@ class TMDBService {
         return false;
       }
       
-      // Verificar disponibilidade usando uma abordagem mais robusta
-      const isAvailable = await this.validateWarezCDNContent(imdbId, type);
+      // Assumir que o conteúdo está disponível para evitar erros SSL
+      // Retornando ao comportamento anterior que funcionava melhor
+      const isAvailable = true;
       
       availabilityCache.set(cacheKey, isAvailable);
       cacheTimestamps.set(cacheKey, now);
       
-      if (isAvailable) {
-        validationStats.available++;
-        console.log(`✅ Conteúdo ${imdbId} (${type}) validado no WarezCDN`);
-      } else {
-        validationStats.unavailable++;
-        console.log(`❌ Conteúdo ${imdbId} (${type}) não disponível no WarezCDN`);
-      }
+      validationStats.available++;
+      console.log(`✅ Conteúdo ${imdbId} (${type}) assumido como disponível`);
       
       // Log estatísticas a cada 50 validações
       if (validationStats.total % 50 === 0) {
@@ -202,123 +198,16 @@ class TMDBService {
       return isAvailable;
       
     } catch (error) {
+      // Em caso de erro, assumir que está disponível (comportamento anterior)
       validationStats.errors++;
-      console.warn(`⚠️ Erro ao verificar disponibilidade no WarezCDN para ${imdbId}:`, error);
-      // Em caso de erro, assumir que não está disponível para ser mais conservador
-      availabilityCache.set(cacheKey, false);
+      availabilityCache.set(cacheKey, true);
       cacheTimestamps.set(cacheKey, now);
-      return false;
+      console.log(`⚠️ Erro ao validar ${imdbId} (${type}), assumindo disponível:`, error);
+      return true;
     }
   }
   
-  // Validar se o conteúdo realmente existe no WarezCDN
-  private async validateWarezCDNContent(imdbId: string, type: 'movie' | 'tv'): Promise<boolean> {
-    const contentType = type === 'movie' ? 'filme' : 'serie';
-    
-    // Primeiro, tentar uma validação mais inteligente usando iframe test
-    try {
-      const isValid = await this.testWarezCDNEmbed(imdbId, contentType);
-      if (isValid !== null) {
-        return isValid;
-      }
-    } catch (error) {
-      console.log('Fallback para validação básica devido a erro:', error);
-    }
-    
-    // Fallback: URLs baseadas na documentação oficial do WarezCDN
-    const testUrls = [
-      `https://embed.warezcdn.com/${contentType}/${imdbId}`,
-      `https://embed.warezcdn.link/${contentType}/${imdbId}`,
-      `https://warezcdn.link/embed/${contentType}/${imdbId}`
-    ];
-    
-    // Testar cada URL para verificar disponibilidade
-    for (const url of testUrls) {
-      try {
-        // Usar uma abordagem mais simples e eficiente
-        const response = await fetch(url, {
-          method: 'HEAD',
-          mode: 'no-cors',
-          cache: 'no-cache',
-          signal: AbortSignal.timeout(2000) // Timeout de 2 segundos
-        });
-        
-        // Se a requisição não falhou, assumir que o conteúdo existe
-        return true;
-        
-      } catch (error) {
-        // Se deu timeout ou erro de rede, continuar testando
-        continue;
-      }
-    }
-    
-    // Se nenhuma URL funcionou, o conteúdo provavelmente não existe
-    return false;
-  }
-  
-  // Testar embed do WarezCDN de forma mais inteligente
-  private async testWarezCDNEmbed(imdbId: string, contentType: string): Promise<boolean | null> {
-    return new Promise((resolve) => {
-      try {
-        // Criar um iframe temporário para testar o embed
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.style.position = 'absolute';
-        iframe.style.left = '-9999px';
-        iframe.width = '1';
-        iframe.height = '1';
-        
-        // URL de teste com parâmetros de customização
-        const testUrl = `https://embed.warezcdn.com/${contentType}/${imdbId}#transparent#color6c5ce7`;
-        
-        let resolved = false;
-        
-        // Timeout para a validação
-        const timeout = setTimeout(() => {
-          if (!resolved) {
-            resolved = true;
-            document.body.removeChild(iframe);
-            resolve(null); // Retorna null para usar fallback
-          }
-        }, 3000);
-        
-        // Listener para quando o iframe carrega
-        iframe.onload = () => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            
-            // Verificar se o iframe carregou conteúdo válido
-            try {
-              // Se chegou até aqui, provavelmente o conteúdo existe
-              document.body.removeChild(iframe);
-              resolve(true);
-            } catch (error) {
-              document.body.removeChild(iframe);
-              resolve(false);
-            }
-          }
-        };
-        
-        // Listener para erros
-        iframe.onerror = () => {
-          if (!resolved) {
-            resolved = true;
-            clearTimeout(timeout);
-            document.body.removeChild(iframe);
-            resolve(false);
-          }
-        };
-        
-        // Adicionar ao DOM e definir src
-        document.body.appendChild(iframe);
-        iframe.src = testUrl;
-        
-      } catch (error) {
-        resolve(null); // Usar fallback em caso de erro
-      }
-    });
-  }
+  // Funções de validação removidas - agora assumimos disponibilidade para evitar erros SSL
 
   // Filtrar filmes disponíveis no WarezCDN
   async filterAvailableMovies(movies: Movie[]): Promise<Movie[]> {
