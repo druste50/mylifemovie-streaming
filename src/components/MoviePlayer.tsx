@@ -32,6 +32,12 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
     return url;
   };
 
+  // Detectar se é iOS Safari
+  const isIOSSafari = () => {
+    const userAgent = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(userAgent) && /Safari/.test(userAgent) && !/CriOS|FxiOS/.test(userAgent);
+  };
+
   // Escape key para fechar
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -84,7 +90,9 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
           <iframe
             src={getEmbedUrl()}
             className="w-full h-full border-0"
-            sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox"
+            {...(!isIOSSafari() && {
+              sandbox: "allow-scripts allow-same-origin allow-presentation allow-forms allow-popups-to-escape-sandbox"
+            })}
             allow="autoplay; encrypted-media; fullscreen *; picture-in-picture"
             referrerPolicy="no-referrer"
             title={title}
@@ -97,10 +105,17 @@ export function MoviePlayer({ imdbId, title, type, season, episode, onClose }: M
       </div>
 
       {/* Instruções */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-        <p className="text-gray-400 text-sm text-center">
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 max-w-md">
+        <p className="text-gray-400 text-sm text-center mb-2">
           Pressione ESC para sair • Use os controles do player interno para fullscreen e qualidade
         </p>
+        {isIOSSafari() && (
+          <div className="bg-yellow-900/50 border border-yellow-600/50 rounded-lg p-3 text-center">
+            <p className="text-yellow-200 text-xs">
+              📱 <strong>iOS Safari:</strong> Se o vídeo não carregar, tente usar outro navegador como Chrome ou Firefox, ou atualize para a versão mais recente do iOS.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
