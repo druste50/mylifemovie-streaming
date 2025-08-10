@@ -1,177 +1,82 @@
-import { useState, useEffect } from 'react';
-import { Genre, Movie, TVShow } from '@/types/movie';
+import React, { useState, useEffect } from 'react';
+import { Genre } from '@/types/movie';
 import { tmdbService } from '@/services/tmdbService';
-import { CategorySection } from './CategorySection';
+import { GenreSectionInfinite } from './GenreSectionInfinite';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface GenreSectionProps {
-  type: 'movie' | 'tv';
-  onItemClick: (item: Movie | TVShow) => void;
-}
-
-export function GenreSection({ type, onItemClick }: GenreSectionProps) {
+export function GenreSection() {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
-  const [genreContent, setGenreContent] = useState<(Movie | TVShow)[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [contentLoading, setContentLoading] = useState(false);
-  const [genreScrollPosition, setGenreScrollPosition] = useState(0);
+  const [contentType, setContentType] = useState<'movies' | 'tv'>('movies');
 
-  // Carregar gêneros
   useEffect(() => {
     loadGenres();
-  }, [type]);
-
-  // Carregar conteúdo quando gênero é selecionado
-  useEffect(() => {
-    if (selectedGenre) {
-      loadGenreContent(selectedGenre.id);
-    }
-  }, [selectedGenre, type]);
+  }, []);
 
   const loadGenres = async () => {
     try {
-      setLoading(true);
-      const response = type === 'movie' 
-        ? await tmdbService.getMovieGenres()
-        : await tmdbService.getTVGenres();
-      
-      setGenres(response.genres);
-      
-      // Selecionar primeiro gênero automaticamente
-      if (response.genres.length > 0) {
-        setSelectedGenre(response.genres[0]);
+      const movieGenres = await tmdbService.getMovieGenres();
+      setGenres(movieGenres);
+      if (movieGenres.length > 0) {
+        setSelectedGenre(movieGenres[0]);
       }
     } catch (error) {
       console.error('Erro ao carregar gêneros:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const loadGenreContent = async (genreId: number) => {
-    try {
-      setContentLoading(true);
-      
-      const genreName = genres.find(g => g.id === genreId)?.name || 'Desconhecido';
-      console.log(`🎭 Buscando ${type === 'movie' ? 'filmes' : 'séries'} do gênero "${genreName}" (múltiplas páginas)...`);
-      
-      const response = type === 'movie'
-        ? await tmdbService.getMoviesByGenre(genreId, 5) // 5 páginas = ~100 filmes
-        : await tmdbService.getTVShowsByGenre(genreId, 5); // 5 páginas = ~100 séries
-      
-      console.log(`📊 Total buscado do TMDB para "${genreName}": ${response.results.length} itens`);
-      
-      // Filtrar apenas conteúdo disponível no WarezCDN
-      console.log(`🔍 Filtrando conteúdo disponível no WarezCDN para "${genreName}"...`);
-      const availableContent = type === 'movie'
-        ? await tmdbService.filterAvailableMovies(response.results)
-        : await tmdbService.filterAvailableTVShows(response.results);
-      
-      console.log(`✅ Conteúdo disponível para "${genreName}": ${availableContent.length}/${response.results.length} itens`);
-      setGenreContent(availableContent);
-    } catch (error) {
-      console.error('Erro ao carregar conteúdo do gênero:', error);
-    } finally {
-      setContentLoading(false);
-    }
+  const handleGenreChange = (genre: Genre) => {
+    setSelectedGenre(genre);
   };
 
-  const scrollGenres = (direction: 'left' | 'right') => {
-    const container = document.getElementById('genres-container');
-    if (container) {
-      const scrollAmount = 300;
-      const newPosition = direction === 'left' 
-        ? Math.max(0, genreScrollPosition - scrollAmount)
-        : genreScrollPosition + scrollAmount;
-      
-      container.scrollTo({ left: newPosition, behavior: 'smooth' });
-      setGenreScrollPosition(newPosition);
-    }
+  const handleContentTypeChange = (type: 'movies' | 'tv') => {
+    setContentType(type);
   };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-700 rounded w-48 mb-6"></div>
-          <div className="flex gap-3 mb-8">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-10 bg-gray-700 rounded-full w-24"></div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="aspect-[2/3] bg-gray-700 rounded-lg"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Título da seção */}
-      <h2 className="text-3xl font-bold text-white mb-6 flex items-center gap-3">
-        {type === 'movie' ? '🎬' : '📺'}
-        {type === 'movie' ? 'Filmes por Gênero' : 'Séries por Gênero'}
-      </h2>
-
-      {/* Seletor de gêneros */}
-      <div className="relative mb-8">
-        <div className="flex items-center gap-2">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4">
+        <h2 className="text-2xl font-bold text-white">Explorar por Gênero</h2>
+        
+        {/* Seletor de tipo de conteúdo */}
+        <div className="flex gap-2">
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => scrollGenres('left')}
-            className="text-white hover:bg-white/10 p-2"
+            variant={contentType === 'movies' ? 'default' : 'outline'}
+            onClick={() => handleContentTypeChange('movies')}
+            className="text-sm"
           >
-            <ChevronLeft className="w-4 h-4" />
+            Filmes
           </Button>
-          
-          <div 
-            id="genres-container"
-            className="flex gap-3 overflow-x-auto scrollbar-hide flex-1 py-2"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {genres.map((genre) => (
-              <Badge
-                key={genre.id}
-                variant={selectedGenre?.id === genre.id ? "default" : "outline"}
-                className={`cursor-pointer whitespace-nowrap px-4 py-2 text-sm transition-all hover:scale-105 ${
-                  selectedGenre?.id === genre.id
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-gray-600 text-gray-300 hover:border-primary hover:text-primary'
-                }`}
-                onClick={() => setSelectedGenre(genre)}
-              >
-                {genre.name}
-              </Badge>
-            ))}
-          </div>
-          
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => scrollGenres('right')}
-            className="text-white hover:bg-white/10 p-2"
+            variant={contentType === 'tv' ? 'default' : 'outline'}
+            onClick={() => handleContentTypeChange('tv')}
+            className="text-sm"
           >
-            <ChevronRight className="w-4 h-4" />
+            Séries
           </Button>
         </div>
+        
+        {/* Seletor de gêneros */}
+        <div className="flex flex-wrap gap-2">
+          {genres.map((genre) => (
+            <Button
+              key={genre.id}
+              variant={selectedGenre?.id === genre.id ? 'default' : 'outline'}
+              onClick={() => handleGenreChange(genre)}
+              className="text-sm"
+            >
+              {genre.name}
+            </Button>
+          ))}
+        </div>
       </div>
-
-      {/* Conteúdo do gênero selecionado */}
+      
+      {/* Conteúdo do gênero */}
       {selectedGenre && (
-        <CategorySection
-          title={`${selectedGenre.name}`}
-          items={genreContent}
-          onItemClick={onItemClick}
-          loading={contentLoading}
-          showTitle={false}
+        <GenreSectionInfinite
+          title={`${selectedGenre.name} - ${contentType === 'movies' ? 'Filmes' : 'Séries'}`}
+          genreId={selectedGenre.id}
+          contentType={contentType}
         />
       )}
     </div>

@@ -3,18 +3,13 @@ import { Movie, TVShow, MovieDetails, TVShowDetails } from '@/types/movie';
 import { tmdbService } from '@/services/tmdbService';
 import { Header } from '@/components/Header';
 import { HeroSection } from '@/components/HeroSection';
-import { CategorySection } from '@/components/CategorySection';
+import { CategorySectionInfinite } from '@/components/CategorySectionInfinite';
 import { GenreSection } from '@/components/GenreSection';
 import { MoviePlayer } from '@/components/MoviePlayer';
 import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [heroMovie, setHeroMovie] = useState<Movie | null>(null);
-  const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
-  const [popularMovies, setPopularMovies] = useState<Movie[]>([]);
-  const [topRatedMovies, setTopRatedMovies] = useState<Movie[]>([]);
-  const [popularSeries, setPopularSeries] = useState<TVShow[]>([]);
-  const [trendingSeries, setTrendingSeries] = useState<TVShow[]>([]);
   const [searchResults, setSearchResults] = useState<(Movie | TVShow)[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -36,65 +31,16 @@ const Index = () => {
     try {
       setLoading(true);
       
-      console.log('🚀 Buscando conteúdo do TMDB (múltiplas páginas)...');
+      console.log('🚀 Buscando filme hero...');
       
-      const [
-        trendingMoviesRes,
-        popularMoviesRes,
-        topRatedMoviesRes,
-        popularSeriesRes,
-        trendingSeriesRes
-      ] = await Promise.all([
-        tmdbService.getTrendingMovies(3), // 3 páginas = ~60 filmes
-        tmdbService.getPopularMovies(3),  // 3 páginas = ~60 filmes
-        tmdbService.getTopRatedMovies(3), // 3 páginas = ~60 filmes
-        tmdbService.getPopularTVShows(3), // 3 páginas = ~60 séries
-        tmdbService.getTrendingTVShows(3) // 3 páginas = ~60 séries
-      ]);
+      // Buscar apenas alguns filmes em alta para o hero
+      const trendingRes = await tmdbService.getTrendingMoviesPage(1);
+      const filteredTrending = await tmdbService.filterAvailableMovies(trendingRes.results);
 
-      console.log('📊 Total buscado do TMDB:', {
-        trendingMovies: trendingMoviesRes.results.length,
-        popularMovies: popularMoviesRes.results.length,
-        topRatedMovies: topRatedMoviesRes.results.length,
-        popularSeries: popularSeriesRes.results.length,
-        trendingSeries: trendingSeriesRes.results.length
-      });
-
-      // Filtrar apenas conteúdo disponível no WarezCDN
-      console.log('🔍 Filtrando conteúdo disponível no WarezCDN...');
-      
-      const [
-        filteredTrendingMovies,
-        filteredPopularMovies,
-        filteredTopRatedMovies,
-        filteredPopularSeries,
-        filteredTrendingSeries
-      ] = await Promise.all([
-        tmdbService.filterAvailableMovies(trendingMoviesRes.results),
-        tmdbService.filterAvailableMovies(popularMoviesRes.results),
-        tmdbService.filterAvailableMovies(topRatedMoviesRes.results),
-        tmdbService.filterAvailableTVShows(popularSeriesRes.results),
-        tmdbService.filterAvailableTVShows(trendingSeriesRes.results)
-      ]);
-
-      setTrendingMovies(filteredTrendingMovies);
-      setPopularMovies(filteredPopularMovies);
-      setTopRatedMovies(filteredTopRatedMovies);
-      setPopularSeries(filteredPopularSeries);
-      setTrendingSeries(filteredTrendingSeries);
-      
-      // Definir filme hero (primeiro dos trending disponíveis)
-      if (filteredTrendingMovies.length > 0) {
-        setHeroMovie(filteredTrendingMovies[0]);
+      // Definir filme hero (primeiro filme em alta disponível)
+      if (filteredTrending.length > 0) {
+        setHeroMovie(filteredTrending[0]);
       }
-      
-      console.log('✅ Filtragem concluída - Conteúdo disponível:', {
-        trendingMovies: `${filteredTrendingMovies.length}/${trendingMoviesRes.results.length}`,
-        popularMovies: `${filteredPopularMovies.length}/${popularMoviesRes.results.length}`,
-        topRatedMovies: `${filteredTopRatedMovies.length}/${topRatedMoviesRes.results.length}`,
-        popularSeries: `${filteredPopularSeries.length}/${popularSeriesRes.results.length}`,
-        trendingSeries: `${filteredTrendingSeries.length}/${trendingSeriesRes.results.length}`
-      });
       
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -264,39 +210,34 @@ const Index = () => {
         {/* Home - Seções de conteúdo */}
         {currentSection === 'home' && !isSearching && (
           <>
-            <CategorySection
+            <CategorySectionInfinite
               title="🔥 Em Alta Hoje"
-              items={trendingMovies}
+              type="trending-movies"
               onItemClick={handlePlayContent}
-              loading={loading}
             />
 
-            <CategorySection
+            <CategorySectionInfinite
               title="🎬 Filmes Populares"
-              items={popularMovies}
+              type="popular-movies"
               onItemClick={handlePlayContent}
-              loading={loading}
             />
 
-            <CategorySection
+            <CategorySectionInfinite
               title="⭐ Mais Bem Avaliados"
-              items={topRatedMovies}
+              type="top-rated-movies"
               onItemClick={handlePlayContent}
-              loading={loading}
             />
 
-            <CategorySection
+            <CategorySectionInfinite
               title="📺 Séries Populares"
-              items={popularSeries}
+              type="popular-tv"
               onItemClick={handlePlayContent}
-              loading={loading}
             />
 
-            <CategorySection
+            <CategorySectionInfinite
               title="🚀 Séries em Alta"
-              items={trendingSeries}
+              type="trending-tv"
               onItemClick={handlePlayContent}
-              loading={loading}
             />
           </>
         )}

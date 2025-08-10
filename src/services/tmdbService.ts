@@ -80,6 +80,16 @@ class TMDBService {
     };
   }
 
+  // Filmes populares com paginação incremental
+  async getPopularMoviesPage(page: number = 1): Promise<{ results: Movie[], hasMore: boolean, totalPages: number }> {
+    const response = await this.fetchTMDB('/movie/popular', { page });
+    return {
+      results: response.results,
+      hasMore: page < response.total_pages,
+      totalPages: response.total_pages
+    };
+  }
+
   // Filmes em alta (múltiplas páginas)
   async getTrendingMovies(maxPages: number = 3): Promise<TMDBResponse> {
     const allResults: Movie[] = [];
@@ -104,6 +114,16 @@ class TMDBService {
     };
   }
 
+  // Filmes em alta com paginação incremental
+  async getTrendingMoviesPage(page: number = 1): Promise<{ results: Movie[], hasMore: boolean, totalPages: number }> {
+    const response = await this.fetchTMDB('/trending/movie/day', { page });
+    return {
+      results: response.results,
+      hasMore: page < response.total_pages,
+      totalPages: response.total_pages
+    };
+  }
+
   // Filmes mais bem avaliados (múltiplas páginas)
   async getTopRatedMovies(maxPages: number = 3): Promise<TMDBResponse> {
     const allResults: Movie[] = [];
@@ -125,6 +145,16 @@ class TMDBService {
       page: 1,
       total_pages: totalPages,
       total_results: totalResults
+    };
+  }
+
+  // Filmes mais bem avaliados com paginação incremental
+  async getTopRatedMoviesPage(page: number = 1): Promise<{ results: Movie[], hasMore: boolean, totalPages: number }> {
+    const response = await this.fetchTMDB('/movie/top_rated', { page });
+    return {
+      results: response.results,
+      hasMore: page < response.total_pages,
+      totalPages: response.total_pages
     };
   }
 
@@ -163,6 +193,16 @@ class TMDBService {
     return { results: allResults };
   }
 
+  // Séries populares com paginação incremental
+  async getPopularTVShowsPage(page: number = 1): Promise<{ results: TVShow[], hasMore: boolean, totalPages: number }> {
+    const response = await this.fetchTMDB('/tv/popular', { page });
+    return {
+      results: response.results,
+      hasMore: page < response.total_pages,
+      totalPages: response.total_pages
+    };
+  }
+
   // Séries em alta (múltiplas páginas)
   async getTrendingTVShows(maxPages: number = 3): Promise<{ results: TVShow[] }> {
     const allResults: TVShow[] = [];
@@ -176,6 +216,16 @@ class TMDBService {
     }
     
     return { results: allResults };
+  }
+
+  // Séries em alta com paginação incremental
+  async getTrendingTVShowsPage(page: number = 1): Promise<{ results: TVShow[], hasMore: boolean, totalPages: number }> {
+    const response = await this.fetchTMDB('/trending/tv/day', { page });
+    return {
+      results: response.results,
+      hasMore: page < response.total_pages,
+      totalPages: response.total_pages
+    };
   }
 
   // Detalhes de uma série
@@ -222,6 +272,16 @@ class TMDBService {
     };
   }
 
+  // Filmes por gênero com paginação incremental
+  async getMoviesByGenrePage(genreId: number, page: number = 1): Promise<{ results: Movie[], hasMore: boolean, totalPages: number }> {
+    const response = await this.fetchTMDB('/discover/movie', { with_genres: genreId, page });
+    return {
+      results: response.results,
+      hasMore: page < response.total_pages,
+      totalPages: response.total_pages
+    };
+  }
+
   // Séries por gênero (múltiplas páginas)
   async getTVShowsByGenre(genreId: number, maxPages: number = 5): Promise<{ results: TVShow[] }> {
     const allResults: TVShow[] = [];
@@ -235,6 +295,16 @@ class TMDBService {
     }
     
     return { results: allResults };
+  }
+
+  // Séries por gênero com paginação incremental
+  async getTVShowsByGenrePage(genreId: number, page: number = 1): Promise<{ results: TVShow[], hasMore: boolean, totalPages: number }> {
+    const response = await this.fetchTMDB('/discover/tv', { with_genres: genreId, page });
+    return {
+      results: response.results,
+      hasMore: page < response.total_pages,
+      totalPages: response.total_pages
+    };
   }
 
   // URLs de imagens
